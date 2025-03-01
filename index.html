@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wordnote Pro - Advanced Editor</title>
+    <title>Wordnote</title>
     <style>
         :root {
             --primary-color: #0078d4;
             --shadow: 0 4px 15px rgba(0,0,0,0.1);
             --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             --border-radius: 8px;
+            --font-size: 14px; /* Default font size */
         }
 
         * {
@@ -25,14 +26,12 @@
             overflow: hidden;
             height: 100vh;
             transition: var(--transition);
-            margin: 0;
         }
 
         #container {
             display: grid;
             grid-template-rows: auto 1fr auto;
             height: 100vh;
-            margin: 0;
             position: relative;
         }
 
@@ -42,9 +41,8 @@
             display: flex;
             gap: 0.5rem;
             border-bottom: 2px solid var(--border-color, #ddd);
-            position: relative;
-            z-index: 1000;
             box-shadow: var(--shadow);
+            z-index: 1000;
         }
 
         .menu-btn {
@@ -149,20 +147,61 @@
             margin-left: 5px;
         }
 
+        #editor-container {
+            position: relative;
+            display: flex;
+            overflow: hidden;
+            flex: 1;
+        }
+
+        #line-numbers-container {
+            width: 40px;
+            background: var(--textarea-bg, white);
+            color: var(--status-color, #666);
+            font-family: var(--font-family, 'JetBrains Mono'), monospace;
+            font-size: var(--font-size);
+            text-align: right;
+            padding: 1.5rem 0.5rem 1.5rem 0;
+            margin: 10px 0 10px 10px;
+            overflow-y: auto;
+            user-select: none;
+            z-index: 2;
+            display: none; /* Hidden by default */
+            border-right: 1px solid var(--border-color, #ddd);
+        }
+
         #textarea {
+            flex: 1;
             padding: 1.5rem;
             border: none;
             resize: none;
             font-family: var(--font-family, 'JetBrains Mono'), monospace;
-            font-size: var(--font-size, 14px);
+            font-size: var(--font-size);
             background: var(--textarea-bg, white);
             color: var(--text-color, #333);
             box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
             outline: none;
             transition: var(--transition);
             border-radius: var(--border-radius);
-            margin: 10px;
-            margin-left: 50px;
+            margin: 10px 10px 10px 0;
+            line-height: 1.5;
+        }
+
+        #highlight-layer {
+            position: absolute;
+            top: 10px;
+            left: 40px;
+            right: 10px;
+            bottom: 10px;
+            padding: 1.5rem;
+            pointer-events: none;
+            white-space: pre-wrap;
+            overflow-wrap: break-word;
+            font-family: var(--font-family, 'JetBrains Mono'), monospace;
+            font-size: var(--font-size);
+            line-height: 1.5;
+            color: var(--text-color, #333);
+            z-index: 1;
         }
 
         #status-bar {
@@ -257,28 +296,6 @@
             overflow-y: auto;
         }
 
-        #theme::-webkit-scrollbar,
-        #font-family::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        #theme::-webkit-scrollbar-track,
-        #font-family::-webkit-scrollbar-track {
-            background: var(--input-bg);
-            border-radius: 4px;
-        }
-
-        #theme::-webkit-scrollbar-thumb,
-        #font-family::-webkit-scrollbar-thumb {
-            background: var(--primary-color);
-            border-radius: 4px;
-        }
-
-        #theme::-webkit-scrollbar-thumb:hover,
-        #font-family::-webkit-scrollbar-thumb:hover {
-            background: #005fa3;
-        }
-
         input[type="checkbox"] {
             width: auto;
             margin-right: 0.5rem;
@@ -358,7 +375,11 @@
             <button class="menu-btn" id="help-btn" aria-label="Help menu">Help</button>
             <div id="dropdown" class="dropdown" style="display: none;"></div>
         </div>
-        <textarea id="textarea" spellcheck="false" aria-label="Text editor"></textarea>
+        <div id="editor-container">
+            <div id="line-numbers-container"></div>
+            <div id="highlight-layer"></div>
+            <textarea id="textarea" spellcheck="false" aria-label="Text editor"></textarea>
+        </div>
         <div id="status-bar">
             <span id="cursor-pos">Ln 1, Col 1</span>
             <span id="doc-stats">Words: 0 | Chars: 0</span>
@@ -452,6 +473,8 @@
                 this.textarea = document.getElementById('textarea');
                 this.dropdown = document.getElementById('dropdown');
                 this.panel = document.getElementById('customization-panel');
+                this.highlightLayer = document.getElementById('highlight-layer');
+                this.lineNumberContainer = document.getElementById('line-numbers-container');
                 this.history = [];
                 this.redoStack = [];
                 this.currentMenu = null;
@@ -463,7 +486,6 @@
                     autoSave: false,
                     lineNumbers: false
                 };
-                this.lineNumberContainer = null;
 
                 this.menus = {
                     file: [
@@ -494,8 +516,8 @@
                     ],
                     view: [
                         { text: 'Full Screen', action: () => this.toggleFullScreen(), shortcut: 'F11' },
-                        { text: 'Zoom In', action: () => this.zoom(1), shortcut: 'Ctrl+Plus' },
-                        { text: 'Zoom Out', action: () => this.zoom(-1), shortcut: 'Ctrl+Minus' },
+                        { text: 'Zoom In', action: () => this.zoom(2), shortcut: 'Ctrl+Plus' },
+                        { text: 'Zoom Out', action: () => this.zoom(-2), shortcut: 'Ctrl+Minus' },
                         { text: 'Reset Zoom', action: () => this.resetZoom(), shortcut: 'Ctrl+0' },
                         { text: 'Toggle Line Numbers', action: () => this.toggleLineNumbers() }
                     ],
@@ -515,11 +537,11 @@
             }
 
             init() {
+                this.loadSettings();
                 this.setupEventListeners();
                 this.applySettings();
                 this.updateStatus();
                 this.dropdown.style.display = 'none';
-                this.createLineNumbers();
             }
 
             setupEventListeners() {
@@ -538,16 +560,19 @@
                 document.getElementById('font-family').addEventListener('change', e => {
                     this.settings.fontFamily = e.target.value;
                     this.applySettings();
+                    this.saveSettings();
                 });
 
                 document.getElementById('font-size').addEventListener('change', e => {
-                    this.settings.fontSize = parseInt(e.target.value);
+                    this.settings.fontSize = Math.max(8, Math.min(72, parseInt(e.target.value)));
                     this.applySettings();
+                    this.saveSettings();
                 });
 
                 document.getElementById('theme').addEventListener('change', e => {
                     this.settings.theme = e.target.value;
-                    this.applyTheme();
+                    this.applySettings();
+                    this.saveSettings();
                 });
 
                 ['syntax-highlight', 'auto-save', 'line-numbers'].forEach(id => {
@@ -593,15 +618,7 @@
                 this.hideDropdown();
                 this.dropdown.style.display = 'block';
                 const rect = button.getBoundingClientRect();
-                const dropdownWidth = this.dropdown.offsetWidth;
-                const screenWidth = window.innerWidth;
-
-                let left = rect.left;
-                if (left + dropdownWidth > screenWidth) {
-                    left = screenWidth - dropdownWidth - 10;
-                }
-
-                this.dropdown.style.left = `${left}px`;
+                this.dropdown.style.left = `${rect.left}px`;
                 this.dropdown.style.top = `${rect.bottom}px`;
                 button.classList.add('active');
                 this.dropdown.innerHTML = '';
@@ -624,13 +641,8 @@
                             subBtn.className = 'dropdown-item';
                             subBtn.textContent = subItem.text;
                             subBtn.addEventListener('click', () => {
-                                try {
-                                    subItem.action();
-                                    this.hideDropdown();
-                                } catch (error) {
-                                    console.error(`Error in submenu action: ${error}`);
-                                    alert('An error occurred.');
-                                }
+                                subItem.action();
+                                this.hideDropdown();
                             });
                             submenuPanel.appendChild(subBtn);
                         });
@@ -649,13 +661,8 @@
                         btn.appendChild(submenuPanel);
                     } else {
                         btn.addEventListener('click', () => {
-                            try {
-                                item.action();
-                                this.hideDropdown();
-                            } catch (error) {
-                                console.error(`Error in menu action: ${error}`);
-                                alert('An error occurred.');
-                            }
+                            item.action();
+                            this.hideDropdown();
                         });
                     }
                     this.dropdown.appendChild(btn);
@@ -676,6 +683,8 @@
                     this.history = [];
                     this.redoStack = [];
                     this.updateStatus();
+                    this.applySyntaxHighlight();
+                    this.updateLineNumbers();
                 }
             }
 
@@ -704,6 +713,8 @@
                         this.history.push(this.textarea.value);
                         this.redoStack = [];
                         this.updateStatus();
+                        this.applySyntaxHighlight();
+                        this.updateLineNumbers();
                     };
                     reader.readAsText(file);
                 };
@@ -745,6 +756,8 @@
                     this.redoStack.push(this.history.pop());
                     this.textarea.value = this.history[this.history.length - 1] || '';
                     this.updateStatus();
+                    this.applySyntaxHighlight();
+                    this.updateLineNumbers();
                 }
             }
 
@@ -754,11 +767,16 @@
                     this.history.push(text);
                     this.textarea.value = text;
                     this.updateStatus();
+                    this.applySyntaxHighlight();
+                    this.updateLineNumbers();
                 }
             }
 
             toggleWordWrap() {
                 this.textarea.style.whiteSpace = this.textarea.style.whiteSpace === 'pre-wrap' ? 'pre' : 'pre-wrap';
+                this.highlightLayer.style.whiteSpace = this.textarea.style.whiteSpace;
+                this.applySyntaxHighlight();
+                this.updateLineNumbers();
             }
 
             toggleFullScreen() {
@@ -771,20 +789,22 @@
 
             zoom(factor) {
                 this.settings.fontSize = Math.max(8, Math.min(72, this.settings.fontSize + factor));
-                this.applySettings();
                 document.getElementById('font-size').value = this.settings.fontSize;
-                this.updateLineNumbers();
+                document.documentElement.style.setProperty('--font-size', `${this.settings.fontSize}px`);
+                this.applySettings();
+                this.saveSettings();
             }
 
             resetZoom() {
                 this.settings.fontSize = 14;
-                this.applySettings();
                 document.getElementById('font-size').value = this.settings.fontSize;
-                this.updateLineNumbers();
+                document.documentElement.style.setProperty('--font-size', `${this.settings.fontSize}px`);
+                this.applySettings();
+                this.saveSettings();
             }
 
             showStats() {
-                const words = this.textarea.value.trim().split(/\s+/).length;
+                const words = this.textarea.value.trim().split(/\s+/).filter(w => w).length;
                 const chars = this.textarea.value.length;
                 const lines = this.textarea.value.split('\n').length;
                 alert(`Words: ${words}\nCharacters: ${chars}\nLines: ${lines}`);
@@ -798,6 +818,8 @@
                 const lines = this.textarea.value.split('\n');
                 this.textarea.value = lines.map(line => line.trim()).join('\n');
                 this.history.push(this.textarea.value);
+                this.applySyntaxHighlight();
+                this.updateLineNumbers();
             }
 
             runCode() {
@@ -832,6 +854,8 @@
                         this.textarea.value = this.textarea.value.split(find).join(replace);
                         this.history.push(this.textarea.value);
                         this.updateStatus();
+                        this.applySyntaxHighlight();
+                        this.updateLineNumbers();
                     }
                 }
             }
@@ -852,55 +876,11 @@
                 this.panel.classList.toggle('active');
             }
 
-            createLineNumbers() {
-                if (!this.lineNumberContainer) {
-                    this.lineNumberContainer = document.createElement('div');
-                    this.lineNumberContainer.style.cssText = `
-                        position: absolute;
-                        left: 0;
-                        top: 10px;
-                        width: 40px;
-                        padding: 1.5rem 0;
-                        text-align: right;
-                        background: var(--textarea-bg);
-                        color: var(--status-color);
-                        font-family: ${this.settings.fontFamily};
-                        font-size: ${this.settings.fontSize}px;
-                        user-select: none;
-                        overflow: hidden;
-                        height: calc(100% - 20px - 1.4rem);
-                    `;
-                    this.textarea.parentNode.insertBefore(this.lineNumberContainer, this.textarea);
-                }
-                this.updateLineNumbers();
-            }
-
-            updateLineNumbers() {
-                if (!this.settings.lineNumbers) {
-                    this.lineNumberContainer.style.display = 'none';
-                    this.textarea.style.marginLeft = '10px';
-                    return;
-                }
-                
-                this.lineNumberContainer.style.display = 'block';
-                this.textarea.style.marginLeft = '50px';
-                const lines = this.textarea.value.split('\n');
-                this.lineNumberContainer.innerHTML = Array.from(
-                    { length: lines.length },
-                    (_, i) => `<div style="line-height: ${this.settings.fontSize * 1.5}px">${i + 1}</div>`
-                ).join('');
-            }
-
-            syncLineNumbersScroll() {
-                if (this.lineNumberContainer) {
-                    this.lineNumberContainer.scrollTop = this.textarea.scrollTop;
-                }
-            }
-
             toggleLineNumbers() {
                 this.settings.lineNumbers = !this.settings.lineNumbers;
                 document.getElementById('line-numbers').checked = this.settings.lineNumbers;
                 this.applySettings();
+                this.saveSettings();
             }
 
             resetSettings() {
@@ -913,6 +893,7 @@
                         autoSave: false,
                         lineNumbers: false
                     };
+                    document.documentElement.style.setProperty('--font-size', `${this.settings.fontSize}px`);
                     this.updateSettingsUI();
                     this.applySettings();
                     localStorage.removeItem('wordnoteSettings');
@@ -922,13 +903,13 @@
 
             saveSettings() {
                 localStorage.setItem('wordnoteSettings', JSON.stringify(this.settings));
-                alert('Settings saved successfully!');
             }
 
             loadSettings() {
                 const saved = localStorage.getItem('wordnoteSettings');
                 if (saved) {
                     this.settings = JSON.parse(saved);
+                    document.documentElement.style.setProperty('--font-size', `${this.settings.fontSize}px`);
                     this.updateSettingsUI();
                 }
             }
@@ -946,8 +927,8 @@
                 this.history.push(this.textarea.value);
                 if (this.history.length > 50) this.history.shift();
                 this.redoStack = [];
-                if (this.settings.syntaxHighlight) this.applySyntaxHighlight();
                 this.updateStatus();
+                this.applySyntaxHighlight();
                 this.updateLineNumbers();
             }
 
@@ -961,8 +942,8 @@
                         case 'h': e.preventDefault(); this.showReplace(); break;
                         case 'z': e.preventDefault(); this.undo(); break;
                         case 'y': e.preventDefault(); this.redo(); break;
-                        case '+': e.preventDefault(); this.zoom(1); break;
-                        case '-': e.preventDefault(); this.zoom(-1); break;
+                        case '+': e.preventDefault(); this.zoom(2); break;
+                        case '-': e.preventDefault(); this.zoom(-2); break;
                         case '0': e.preventDefault(); this.resetZoom(); break;
                     }
                 } else if (e.key === 'F11') {
@@ -978,7 +959,7 @@
                 const cursorPos = this.textarea.selectionStart;
                 const words = text.trim().split(/\s+/).filter(w => w).length;
                 const chars = text.length;
-                let line = 1; 
+                let line = 1;
                 let col = 1;
 
                 for (let i = 0; i < cursorPos; i++) {
@@ -997,12 +978,17 @@
             applySettings() {
                 this.textarea.style.fontFamily = this.settings.fontFamily;
                 this.textarea.style.fontSize = `${this.settings.fontSize}px`;
+                this.highlightLayer.style.fontFamily = this.settings.fontFamily;
+                this.highlightLayer.style.fontSize = `${this.settings.fontSize}px`;
+                this.lineNumberContainer.style.fontFamily = this.settings.fontFamily;
+                this.lineNumberContainer.style.fontSize = `${this.settings.fontSize}px`;
                 this.applyTheme();
-                if (this.settings.syntaxHighlight) this.applySyntaxHighlight();
                 this.updateLineNumbers();
-                if (this.lineNumberContainer) {
-                    this.lineNumberContainer.style.fontFamily = this.settings.fontFamily;
-                    this.lineNumberContainer.style.fontSize = `${this.settings.fontSize}px`;
+                if (this.settings.syntaxHighlight) {
+                    this.applySyntaxHighlight();
+                } else {
+                    this.highlightLayer.innerHTML = '';
+                    this.textarea.style.color = 'var(--text-color)';
                 }
             }
 
@@ -1240,49 +1226,62 @@
             }
 
             applySyntaxHighlight() {
+                if (!this.settings.syntaxHighlight) {
+                    this.highlightLayer.innerHTML = '';
+                    this.textarea.style.color = 'var(--text-color)';
+                    return;
+                }
+
                 const keywords = ['function', 'const', 'let', 'var', 'if', 'else', 'return', 'for', 'while', 'class'];
                 const strings = /(["'`])(?:(?=(\\?))\2.)*?\1/g;
                 const comments = /(\/\/.*$|\/\*[\s\S]*?\*\/)/gm;
-                
-                let content = this.textarea.value;
-                const wrapper = document.createElement('div');
-                wrapper.style.position = 'absolute';
-                wrapper.style.left = '-9999px';
-                document.body.appendChild(wrapper);
-                
-                wrapper.innerHTML = content
+                const numbers = /\b\d+\b/g;
+
+                let content = this.textarea.value
+                    .replace(/&/g, '&')
+                    .replace(/</g, '<')
+                    .replace(/>/g, '>');
+
+                content = content
                     .replace(comments, match => `<span style="color: #6a737d">${match}</span>`)
                     .replace(strings, match => `<span style="color: #e6c07b">${match}</span>`)
+                    .replace(numbers, match => `<span style="color: #d19a66">${match}</span>`)
                     .replace(new RegExp(`\\b(${keywords.join('|')})\\b`, 'g'), 
                         match => `<span style="color: var(--primary-color)">${match}</span>`);
-                
-                this.textarea.style.background = 'transparent';
+
+                this.highlightLayer.innerHTML = content;
                 this.textarea.style.color = 'transparent';
                 this.textarea.style.caretColor = 'var(--text-color)';
-                
-                const highlightLayer = document.createElement('div');
-                highlightLayer.style.cssText = this.textarea.style.cssText;
-                highlightLayer.style.position = 'absolute';
-                highlightLayer.style.pointerEvents = 'none';
-                highlightLayer.style.background = 'transparent';
-                highlightLayer.style.color = 'inherit';
-                highlightLayer.innerHTML = wrapper.innerHTML;
-                this.textarea.parentNode.insertBefore(highlightLayer, this.textarea);
-                
-                document.body.removeChild(wrapper);
+            }
+
+            updateLineNumbers() {
+                if (!this.settings.lineNumbers) {
+                    this.lineNumberContainer.style.display = 'none';
+                    this.highlightLayer.style.left = '10px';
+                    this.textarea.style.marginLeft = '10px';
+                    return;
+                }
+
+                this.lineNumberContainer.style.display = 'block';
+                this.highlightLayer.style.left = '40px';
+                this.textarea.style.marginLeft = '0px';
+                const lines = this.textarea.value.split('\n');
+                this.lineNumberContainer.innerHTML = Array.from(
+                    { length: lines.length },
+                    (_, i) => `<div style="line-height: ${this.settings.fontSize * 1.5}px">${i + 1}</div>`
+                ).join('');
+            }
+
+            syncLineNumbersScroll() {
+                this.lineNumberContainer.scrollTop = this.textarea.scrollTop;
+                this.highlightLayer.scrollTop = this.textarea.scrollTop;
             }
         }
 
         const script = document.createElement('script');
         script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
         script.onload = () => {
-            try {
-                const editor = new WordnotePro();
-                editor.loadSettings();
-            } catch (error) {
-                console.error(`Initialization error: ${error}`);
-                
-            }
+            const editor = new WordnotePro();
         };
         document.head.appendChild(script);
     </script>
