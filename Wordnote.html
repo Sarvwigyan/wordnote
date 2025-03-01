@@ -1,0 +1,1290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wordnote Pro - Advanced Editor</title>
+    <style>
+        :root {
+            --primary-color: #0078d4;
+            --shadow: 0 4px 15px rgba(0,0,0,0.1);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --border-radius: 8px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background-color: var(--bg-color, #f5f6f5);
+            color: var(--text-color, #333);
+            overflow: hidden;
+            height: 100vh;
+            transition: var(--transition);
+            margin: 0;
+        }
+
+        #container {
+            display: grid;
+            grid-template-rows: auto 1fr auto;
+            height: 100vh;
+            margin: 0;
+            position: relative;
+        }
+
+        #menu-bar {
+            background: var(--menu-bg, linear-gradient(135deg, #ffffff, #f0f0f0));
+            padding: 0.5rem 1rem;
+            display: flex;
+            gap: 0.5rem;
+            border-bottom: 2px solid var(--border-color, #ddd);
+            position: relative;
+            z-index: 1000;
+            box-shadow: var(--shadow);
+        }
+
+        .menu-btn {
+            padding: 0.6rem 1.2rem;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            border-radius: var(--border-radius);
+            font-weight: 500;
+            transition: var(--transition);
+            color: var(--menu-text, #333);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .menu-btn::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--primary-color);
+            transform: scaleX(0);
+            transform-origin: bottom right;
+            transition: transform 0.3s ease-out;
+        }
+
+        .menu-btn:hover::after {
+            transform: scaleX(1);
+            transform-origin: bottom left;
+        }
+
+        .menu-btn:hover, .menu-btn:focus {
+            background: var(--hover-bg, rgba(0,120,212,0.1));
+            outline: none;
+        }
+
+        .menu-btn.active {
+            background: var(--active-bg, rgba(0,120,212,0.2));
+        }
+
+        .dropdown {
+            position: absolute;
+            background: var(--dropdown-bg, white);
+            border: 1px solid var(--border-color, #ddd);
+            border-radius: var(--border-radius);
+            min-width: 5rem;
+            max-width: 15rem;
+            box-shadow: var(--shadow);
+            animation: slideIn 0.2s ease-out;
+            z-index: 2000;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .dropdown-item {
+            padding: 0.7rem 1rem;
+            border: none;
+            background: none;
+            text-align: left;
+            cursor: pointer;
+            width: 100%;
+            transition: var(--transition);
+            color: var(--dropdown-text, #333);
+            font-size: 0.95rem;
+        }
+
+        .dropdown-item:hover,
+        .dropdown-item:focus {
+            background: var(--hover-bg, #f0f0f0);
+            color: var(--primary-color);
+            outline: none;
+        }
+
+        .dropdown-item.submenu::after {
+            content: '▼';
+            float: right;
+            font-size: 0.8rem;
+            transition: transform 0.2s ease;
+        }
+
+        .dropdown-item.submenu.active::after {
+            transform: rotate(180deg);
+        }
+
+        .submenu-panel {
+            position: absolute;
+            background: var(--dropdown-bg, white);
+            border: 1px solid var(--border-color, #ddd);
+            border-radius: var(--border-radius);
+            min-width: 150px;
+            box-shadow: var(--shadow);
+            animation: slideIn 0.2s ease-out;
+            z-index: 2001;
+            display: none;
+            left: 100%;
+            top: 0;
+            margin-left: 5px;
+        }
+
+        #textarea {
+            padding: 1.5rem;
+            border: none;
+            resize: none;
+            font-family: var(--font-family, 'JetBrains Mono'), monospace;
+            font-size: var(--font-size, 14px);
+            background: var(--textarea-bg, white);
+            color: var(--text-color, #333);
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
+            outline: none;
+            transition: var(--transition);
+            border-radius: var(--border-radius);
+            margin: 10px;
+            margin-left: 50px;
+        }
+
+        #status-bar {
+            padding: 0.7rem 1.5rem;
+            background: var(--status-bg, #fafafa);
+            border-top: 1px solid var(--border-color, #ddd);
+            font-size: 0.9rem;
+            color: var(--status-color, #666);
+            display: flex;
+            justify-content: space-between;
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.03);
+        }
+
+        #customization-panel {
+            position: fixed;
+            right: -450px;
+            top: 0;
+            width: 50%;
+            max-width: 450px;
+            height: 100%;
+            background: var(--panel-bg, white);
+            box-shadow: -4px 0 20px rgba(0,0,0,0.15);
+            transition: var(--transition);
+            z-index: 1500;
+            overflow-y: auto;
+            border-radius: var(--border-radius) 0 0 var(--border-radius);
+            padding: 1rem;
+        }
+
+        #customization-panel.active {
+            right: 0;
+        }
+
+        .panel-header {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            background: var(--panel-bg);
+            z-index: 1;
+        }
+
+        .panel-header h2 {
+            font-size: 1.4rem;
+            color: var(--text-color);
+        }
+
+        .panel-section {
+            margin: 1.5rem 0;
+            padding: 1.5rem;
+            background: rgba(0,0,0,0.02);
+            border-radius: var(--border-radius);
+        }
+
+        .panel-section h3 {
+            margin-bottom: 1rem;
+            color: var(--text-color);
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .setting-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .setting-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-color);
+            font-size: 0.95rem;
+        }
+
+        select, 
+        input[type="number"],
+        input[type="checkbox"] {
+            width: 100%;
+            padding: 0.8rem;
+            margin: 0.3rem 0;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 0.95rem;
+            transition: var(--transition);
+            background: var(--input-bg);
+            color: var(--text-color);
+        }
+
+        #theme, #font-family {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        #theme::-webkit-scrollbar,
+        #font-family::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #theme::-webkit-scrollbar-track,
+        #font-family::-webkit-scrollbar-track {
+            background: var(--input-bg);
+            border-radius: 4px;
+        }
+
+        #theme::-webkit-scrollbar-thumb,
+        #font-family::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 4px;
+        }
+
+        #theme::-webkit-scrollbar-thumb:hover,
+        #font-family::-webkit-scrollbar-thumb:hover {
+            background: #005fa3;
+        }
+
+        input[type="checkbox"] {
+            width: auto;
+            margin-right: 0.5rem;
+        }
+
+        select:hover,
+        input[type="number"]:hover,
+        input[type="checkbox"]:hover + span {
+            border-color: var(--primary-color);
+        }
+
+        select:focus,
+        input[type="number"]:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 5px rgba(0,120,212,0.3);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        button:not(.menu-btn) {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: var(--transition);
+            flex: 1;
+        }
+
+        .primary-btn {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .primary-btn:hover {
+            background: #005fa3;
+        }
+
+        .secondary-btn {
+            background: var(--border-color);
+            color: var(--text-color);
+        }
+
+        .secondary-btn:hover {
+            background: #c0c0c0;
+        }
+
+        #close-panel-btn {
+            background: transparent;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-color);
+            transition: var(--transition);
+            padding: 0.5rem;
+        }
+
+        #close-panel-btn:hover {
+            color: var(--primary-color);
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="menu-bar">
+            <button class="menu-btn" id="file-btn" aria-label="File menu">File</button>
+            <button class="menu-btn" id="edit-btn" aria-label="Edit menu">Edit</button>
+            <button class="menu-btn" id="format-btn" aria-label="Format menu">Format</button>
+            <button class="menu-btn" id="view-btn" aria-label="View menu">View</button>
+            <button class="menu-btn" id="tools-btn" aria-label="Tools menu">Tools</button>
+            <button class="menu-btn" id="help-btn" aria-label="Help menu">Help</button>
+            <div id="dropdown" class="dropdown" style="display: none;"></div>
+        </div>
+        <textarea id="textarea" spellcheck="false" aria-label="Text editor"></textarea>
+        <div id="status-bar">
+            <span id="cursor-pos">Ln 1, Col 1</span>
+            <span id="doc-stats">Words: 0 | Chars: 0</span>
+        </div>
+        <div id="customization-panel">
+            <div class="panel-header">
+                <h2>Settings</h2>
+                <button id="close-panel-btn" aria-label="Close settings">✕</button>
+            </div>
+            <div class="panel-section">
+                <h3>Editor Appearance</h3>
+                <div class="setting-group">
+                    <label for="font-family">Font Family</label>
+                    <select id="font-family">
+                        <option value="JetBrains Mono">JetBrains Mono</option>
+                        <option value="Fira Code">Fira Code</option>
+                        <option value="Roboto Mono">Roboto Mono</option>
+                        <option value="Courier New">Courier New</option>
+                        <option value="Source Code Pro">Source Code Pro</option>
+                        <option value="Inconsolata">Inconsolata</option>
+                        <option value="IBM Plex Mono">IBM Plex Mono</option>
+                        <option value="Space Mono">Space Mono</option>
+                        <option value="Ubuntu Mono">Ubuntu Mono</option>
+                        <option value="Cascadia Code">Cascadia Code</option>
+                        <option value="Consolas">Consolas</option>
+                        <option value="Monaco">Monaco</option>
+                    </select>
+                </div>
+                <div class="setting-group">
+                    <label for="font-size">Font Size</label>
+                    <input type="number" id="font-size" min="8" max="72" value="14">
+                </div>
+                <div class="setting-group">
+                    <label for="theme">Theme</label>
+                    <select id="theme">
+                        <option value="light">Light</option>
+                        <option value="dark">Dark</option>
+                        <option value="solarized">Solarized</option>
+                        <option value="dracula">Dracula</option>
+                        <option value="nord">Nord</option>
+                        <option value="monokai">Monokai</option>
+                        <option value="github">GitHub</option>
+                        <option value="github-dark">GitHub Dark</option>
+                        <option value="material">Material</option>
+                        <option value="vscode">VS Code</option>
+                        <option value="atom">Atom One Dark</option>
+                        <option value="sublime">Sublime</option>
+                        <option value="oceanic">Oceanic Next</option>
+                        <option value="gruvbox">Gruvbox</option>
+                    </select>
+                </div>
+            </div>
+            <div class="panel-section">
+                <h3>Editor Features</h3>
+                <div class="setting-group">
+                    <label>
+                        <input type="checkbox" id="syntax-highlight">
+                        <span>Syntax Highlighting</span>
+                    </label>
+                </div>
+                <div class="setting-group">
+                    <label>
+                        <input type="checkbox" id="auto-save">
+                        <span>Auto Save</span>
+                    </label>
+                </div>
+                <div class="setting-group">
+                    <label>
+                        <input type="checkbox" id="line-numbers">
+                        <span>Line Numbers</span>
+                    </label>
+                </div>
+            </div>
+            <div class="panel-section">
+                <h3>Export Options</h3>
+                <div class="button-group">
+                    <button class="primary-btn" id="export-md">Export as Markdown</button>
+                    <button class="primary-btn" id="export-pdf">Export as PDF</button>
+                </div>
+                <div class="button-group">
+                    <button class="secondary-btn" id="reset-settings">Reset Settings</button>
+                    <button class="secondary-btn" id="save-settings">Save Settings</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class WordnotePro {
+            constructor() {
+                this.textarea = document.getElementById('textarea');
+                this.dropdown = document.getElementById('dropdown');
+                this.panel = document.getElementById('customization-panel');
+                this.history = [];
+                this.redoStack = [];
+                this.currentMenu = null;
+                this.settings = {
+                    fontFamily: 'JetBrains Mono',
+                    fontSize: 14,
+                    theme: 'light',
+                    syntaxHighlight: false,
+                    autoSave: false,
+                    lineNumbers: false
+                };
+                this.lineNumberContainer = null;
+
+                this.menus = {
+                    file: [
+                        { text: 'New', action: () => this.newDocument(), shortcut: 'Ctrl+N' },
+                        { text: 'Open', action: () => this.openFile(), shortcut: 'Ctrl+O' },
+                        { text: 'Save', action: () => this.saveFile(), shortcut: 'Ctrl+S' },
+                        { text: 'Save As', action: () => this.saveFileAs() },
+                        { text: 'Export', submenu: [
+                            { text: 'PDF', action: () => this.exportPDF() },
+                            { text: 'Markdown', action: () => this.exportMarkdown() },
+                            { text: 'HTML', action: () => this.exportHTML() }
+                        ]},
+                        { text: 'Print', action: () => window.print(), shortcut: 'Ctrl+P' }
+                    ],
+                    edit: [
+                        { text: 'Undo', action: () => this.undo(), shortcut: 'Ctrl+Z' },
+                        { text: 'Redo', action: () => this.redo(), shortcut: 'Ctrl+Y' },
+                        { text: 'Cut', action: () => document.execCommand('cut'), shortcut: 'Ctrl+X' },
+                        { text: 'Copy', action: () => document.execCommand('copy'), shortcut: 'Ctrl+C' },
+                        { text: 'Paste', action: () => document.execCommand('paste'), shortcut: 'Ctrl+V' },
+                        { text: 'Find', action: () => this.showSearch(), shortcut: 'Ctrl+F' },
+                        { text: 'Replace', action: () => this.showReplace(), shortcut: 'Ctrl+H' }
+                    ],
+                    format: [
+                        { text: 'Word Wrap', action: () => this.toggleWordWrap() },
+                        { text: 'Format Code', action: () => this.formatCode() },
+                        { text: 'Settings', action: () => this.togglePanel() }
+                    ],
+                    view: [
+                        { text: 'Full Screen', action: () => this.toggleFullScreen(), shortcut: 'F11' },
+                        { text: 'Zoom In', action: () => this.zoom(1), shortcut: 'Ctrl+Plus' },
+                        { text: 'Zoom Out', action: () => this.zoom(-1), shortcut: 'Ctrl+Minus' },
+                        { text: 'Reset Zoom', action: () => this.resetZoom(), shortcut: 'Ctrl+0' },
+                        { text: 'Toggle Line Numbers', action: () => this.toggleLineNumbers() }
+                    ],
+                    tools: [
+                        { text: 'Statistics', action: () => this.showStats() },
+                        { text: 'Spell Check', action: () => this.toggleSpellCheck() },
+                        { text: 'Code Runner', action: () => this.runCode() }
+                    ],
+                    help: [
+                        { text: 'Documentation', action: () => window.open('https://example.com') },
+                        { text: 'Keyboard Shortcuts', action: () => this.showShortcuts() },
+                        { text: 'About', action: () => this.showAbout() }
+                    ]
+                };
+
+                this.init();
+            }
+
+            init() {
+                this.setupEventListeners();
+                this.applySettings();
+                this.updateStatus();
+                this.dropdown.style.display = 'none';
+                this.createLineNumbers();
+            }
+
+            setupEventListeners() {
+                document.querySelectorAll('.menu-btn').forEach(btn => {
+                    btn.addEventListener('click', () => this.toggleMenu(btn));
+                    btn.addEventListener('keydown', e => {
+                        if (e.key === 'Enter' || e.key === ' ') this.toggleMenu(btn);
+                    });
+                });
+
+                this.textarea.addEventListener('input', () => this.handleInput());
+                this.textarea.addEventListener('keydown', e => this.handleKeydown(e));
+                this.textarea.addEventListener('click', () => this.updateStatus());
+                this.textarea.addEventListener('scroll', () => this.syncLineNumbersScroll());
+
+                document.getElementById('font-family').addEventListener('change', e => {
+                    this.settings.fontFamily = e.target.value;
+                    this.applySettings();
+                });
+
+                document.getElementById('font-size').addEventListener('change', e => {
+                    this.settings.fontSize = parseInt(e.target.value);
+                    this.applySettings();
+                });
+
+                document.getElementById('theme').addEventListener('change', e => {
+                    this.settings.theme = e.target.value;
+                    this.applyTheme();
+                });
+
+                ['syntax-highlight', 'auto-save', 'line-numbers'].forEach(id => {
+                    document.getElementById(id).addEventListener('change', e => {
+                        this.settings[id.replace('-', '')] = e.target.checked;
+                        this.applySettings();
+                        this.saveSettings();
+                    });
+                });
+
+                document.getElementById('export-md').addEventListener('click', () => this.exportMarkdown());
+                document.getElementById('export-pdf').addEventListener('click', () => this.exportPDF());
+                document.getElementById('reset-settings').addEventListener('click', () => this.resetSettings());
+                document.getElementById('save-settings').addEventListener('click', () => this.saveSettings());
+                document.getElementById('close-panel-btn').addEventListener('click', () => {
+                    this.panel.classList.remove('active');
+                });
+
+                setInterval(() => {
+                    if (this.settings.autoSave && this.textarea.value) {
+                        this.saveFile();
+                    }
+                }, 30000);
+
+                document.body.addEventListener('click', e => {
+                    if (!e.target.closest('.menu-btn') && !e.target.closest('.dropdown') && 
+                        !e.target.closest('#customization-panel')) {
+                        this.hideDropdown();
+                    }
+                });
+            }
+
+            toggleMenu(button) {
+                if (this.currentMenu === button.id) {
+                    this.hideDropdown();
+                } else {
+                    this.showDropdown(button.id.replace('-btn', ''), button);
+                    this.currentMenu = button.id;
+                }
+            }
+
+            showDropdown(menu, button) {
+                this.hideDropdown();
+                this.dropdown.style.display = 'block';
+                const rect = button.getBoundingClientRect();
+                const dropdownWidth = this.dropdown.offsetWidth;
+                const screenWidth = window.innerWidth;
+
+                let left = rect.left;
+                if (left + dropdownWidth > screenWidth) {
+                    left = screenWidth - dropdownWidth - 10;
+                }
+
+                this.dropdown.style.left = `${left}px`;
+                this.dropdown.style.top = `${rect.bottom}px`;
+                button.classList.add('active');
+                this.dropdown.innerHTML = '';
+
+                this.menus[menu].forEach(item => {
+                    const btn = document.createElement('button');
+                    btn.className = 'dropdown-item';
+                    btn.setAttribute('role', 'menuitem');
+                    btn.innerHTML = item.shortcut 
+                        ? `${item.text} <span style="float: right; opacity: 0.7">${item.shortcut}</span>`
+                        : item.text;
+
+                    if (item.submenu) {
+                        btn.classList.add('submenu');
+                        const submenuPanel = document.createElement('div');
+                        submenuPanel.className = 'submenu-panel';
+
+                        item.submenu.forEach(subItem => {
+                            const subBtn = document.createElement('button');
+                            subBtn.className = 'dropdown-item';
+                            subBtn.textContent = subItem.text;
+                            subBtn.addEventListener('click', () => {
+                                try {
+                                    subItem.action();
+                                    this.hideDropdown();
+                                } catch (error) {
+                                    console.error(`Error in submenu action: ${error}`);
+                                    alert('An error occurred.');
+                                }
+                            });
+                            submenuPanel.appendChild(subBtn);
+                        });
+
+                        btn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            const isOpen = submenuPanel.style.display === 'block';
+                            document.querySelectorAll('.submenu-panel').forEach(panel => panel.style.display = 'none');
+                            document.querySelectorAll('.dropdown-item.submenu').forEach(b => b.classList.remove('active'));
+                            if (!isOpen) {
+                                submenuPanel.style.display = 'block';
+                                btn.classList.add('active');
+                            }
+                        });
+
+                        btn.appendChild(submenuPanel);
+                    } else {
+                        btn.addEventListener('click', () => {
+                            try {
+                                item.action();
+                                this.hideDropdown();
+                            } catch (error) {
+                                console.error(`Error in menu action: ${error}`);
+                                alert('An error occurred.');
+                            }
+                        });
+                    }
+                    this.dropdown.appendChild(btn);
+                });
+            }
+
+            hideDropdown() {
+                this.dropdown.style.display = 'none';
+                document.querySelectorAll('.menu-btn').forEach(btn => btn.classList.remove('active'));
+                document.querySelectorAll('.submenu-panel').forEach(panel => panel.style.display = 'none');
+                document.querySelectorAll('.dropdown-item.submenu').forEach(btn => btn.classList.remove('active'));
+                this.currentMenu = null;
+            }
+
+            newDocument() {
+                if (this.textarea.value && confirm('Discard current document?')) {
+                    this.textarea.value = '';
+                    this.history = [];
+                    this.redoStack = [];
+                    this.updateStatus();
+                }
+            }
+
+            saveFile() {
+                const blob = new Blob([this.textarea.value], { type: 'text/plain' });
+                this.downloadFile(blob, 'document.txt');
+            }
+
+            saveFileAs() {
+                const name = prompt('Enter file name:', 'document.txt');
+                if (name) {
+                    const blob = new Blob([this.textarea.value], { type: 'text/plain' });
+                    this.downloadFile(blob, name);
+                }
+            }
+
+            openFile() {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = '.txt,.md,.js,.html';
+                input.onchange = e => {
+                    const file = e.target.files[0];
+                    const reader = new FileReader();
+                    reader.onload = e => {
+                        this.textarea.value = e.target.result;
+                        this.history.push(this.textarea.value);
+                        this.redoStack = [];
+                        this.updateStatus();
+                    };
+                    reader.readAsText(file);
+                };
+                input.click();
+            }
+
+            exportPDF() {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                doc.setFont(this.settings.fontFamily);
+                doc.setFontSize(this.settings.fontSize);
+                const splitText = doc.splitTextToSize(this.textarea.value, 180);
+                doc.text(splitText, 15, 15);
+                doc.save('document.pdf');
+            }
+
+            exportMarkdown() {
+                const blob = new Blob([this.textarea.value], { type: 'text/markdown' });
+                this.downloadFile(blob, 'document.md');
+            }
+
+            exportHTML() {
+                const html = `<!DOCTYPE html><html><body><pre>${this.textarea.value}</pre></body></html>`;
+                const blob = new Blob([html], { type: 'text/html' });
+                this.downloadFile(blob, 'document.html');
+            }
+
+            downloadFile(blob, name) {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = name;
+                a.click();
+                URL.revokeObjectURL(url);
+            }
+
+            undo() {
+                if (this.history.length > 1) {
+                    this.redoStack.push(this.history.pop());
+                    this.textarea.value = this.history[this.history.length - 1] || '';
+                    this.updateStatus();
+                }
+            }
+
+            redo() {
+                if (this.redoStack.length > 0) {
+                    const text = this.redoStack.pop();
+                    this.history.push(text);
+                    this.textarea.value = text;
+                    this.updateStatus();
+                }
+            }
+
+            toggleWordWrap() {
+                this.textarea.style.whiteSpace = this.textarea.style.whiteSpace === 'pre-wrap' ? 'pre' : 'pre-wrap';
+            }
+
+            toggleFullScreen() {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen();
+                } else {
+                    document.exitFullscreen();
+                }
+            }
+
+            zoom(factor) {
+                this.settings.fontSize = Math.max(8, Math.min(72, this.settings.fontSize + factor));
+                this.applySettings();
+                document.getElementById('font-size').value = this.settings.fontSize;
+                this.updateLineNumbers();
+            }
+
+            resetZoom() {
+                this.settings.fontSize = 14;
+                this.applySettings();
+                document.getElementById('font-size').value = this.settings.fontSize;
+                this.updateLineNumbers();
+            }
+
+            showStats() {
+                const words = this.textarea.value.trim().split(/\s+/).length;
+                const chars = this.textarea.value.length;
+                const lines = this.textarea.value.split('\n').length;
+                alert(`Words: ${words}\nCharacters: ${chars}\nLines: ${lines}`);
+            }
+
+            toggleSpellCheck() {
+                this.textarea.spellcheck = !this.textarea.spellcheck;
+            }
+
+            formatCode() {
+                const lines = this.textarea.value.split('\n');
+                this.textarea.value = lines.map(line => line.trim()).join('\n');
+                this.history.push(this.textarea.value);
+            }
+
+            runCode() {
+                try {
+                    const result = eval(this.textarea.value);
+                    console.log(result);
+                    alert('Code executed - check console');
+                } catch (error) {
+                    alert(`Error: ${error.message}`);
+                }
+            }
+
+            showSearch() {
+                const term = prompt('Enter search term:');
+                if (term) {
+                    const start = this.textarea.selectionStart;
+                    const index = this.textarea.value.indexOf(term, start);
+                    if (index >= 0) {
+                        this.textarea.setSelectionRange(index, index + term.length);
+                        this.textarea.focus();
+                    } else {
+                        alert('Term not found');
+                    }
+                }
+            }
+
+            showReplace() {
+                const find = prompt('Find what:');
+                if (find) {
+                    const replace = prompt('Replace with:');
+                    if (replace !== null) {
+                        this.textarea.value = this.textarea.value.split(find).join(replace);
+                        this.history.push(this.textarea.value);
+                        this.updateStatus();
+                    }
+                }
+            }
+
+            showShortcuts() {
+                const shortcuts = Object.values(this.menus).flat()
+                    .filter(item => item.shortcut)
+                    .map(item => `${item.text}: ${item.shortcut}`)
+                    .join('\n');
+                alert('Keyboard Shortcuts:\n' + shortcuts);
+            }
+
+            showAbout() {
+                alert('Wordnote Pro\nVersion 3.0\nAdvanced Text Editor');
+            }
+
+            togglePanel() {
+                this.panel.classList.toggle('active');
+            }
+
+            createLineNumbers() {
+                if (!this.lineNumberContainer) {
+                    this.lineNumberContainer = document.createElement('div');
+                    this.lineNumberContainer.style.cssText = `
+                        position: absolute;
+                        left: 0;
+                        top: 10px;
+                        width: 40px;
+                        padding: 1.5rem 0;
+                        text-align: right;
+                        background: var(--textarea-bg);
+                        color: var(--status-color);
+                        font-family: ${this.settings.fontFamily};
+                        font-size: ${this.settings.fontSize}px;
+                        user-select: none;
+                        overflow: hidden;
+                        height: calc(100% - 20px - 1.4rem);
+                    `;
+                    this.textarea.parentNode.insertBefore(this.lineNumberContainer, this.textarea);
+                }
+                this.updateLineNumbers();
+            }
+
+            updateLineNumbers() {
+                if (!this.settings.lineNumbers) {
+                    this.lineNumberContainer.style.display = 'none';
+                    this.textarea.style.marginLeft = '10px';
+                    return;
+                }
+                
+                this.lineNumberContainer.style.display = 'block';
+                this.textarea.style.marginLeft = '50px';
+                const lines = this.textarea.value.split('\n');
+                this.lineNumberContainer.innerHTML = Array.from(
+                    { length: lines.length },
+                    (_, i) => `<div style="line-height: ${this.settings.fontSize * 1.5}px">${i + 1}</div>`
+                ).join('');
+            }
+
+            syncLineNumbersScroll() {
+                if (this.lineNumberContainer) {
+                    this.lineNumberContainer.scrollTop = this.textarea.scrollTop;
+                }
+            }
+
+            toggleLineNumbers() {
+                this.settings.lineNumbers = !this.settings.lineNumbers;
+                document.getElementById('line-numbers').checked = this.settings.lineNumbers;
+                this.applySettings();
+            }
+
+            resetSettings() {
+                if (confirm('Reset all settings to default?')) {
+                    this.settings = {
+                        fontFamily: 'JetBrains Mono',
+                        fontSize: 14,
+                        theme: 'light',
+                        syntaxHighlight: false,
+                        autoSave: false,
+                        lineNumbers: false
+                    };
+                    this.updateSettingsUI();
+                    this.applySettings();
+                    localStorage.removeItem('wordnoteSettings');
+                    alert('Settings reset to default');
+                }
+            }
+
+            saveSettings() {
+                localStorage.setItem('wordnoteSettings', JSON.stringify(this.settings));
+                alert('Settings saved successfully!');
+            }
+
+            loadSettings() {
+                const saved = localStorage.getItem('wordnoteSettings');
+                if (saved) {
+                    this.settings = JSON.parse(saved);
+                    this.updateSettingsUI();
+                }
+            }
+
+            updateSettingsUI() {
+                document.getElementById('font-family').value = this.settings.fontFamily;
+                document.getElementById('font-size').value = this.settings.fontSize;
+                document.getElementById('theme').value = this.settings.theme;
+                document.getElementById('syntax-highlight').checked = this.settings.syntaxHighlight;
+                document.getElementById('auto-save').checked = this.settings.autoSave;
+                document.getElementById('line-numbers').checked = this.settings.lineNumbers;
+            }
+
+            handleInput() {
+                this.history.push(this.textarea.value);
+                if (this.history.length > 50) this.history.shift();
+                this.redoStack = [];
+                if (this.settings.syntaxHighlight) this.applySyntaxHighlight();
+                this.updateStatus();
+                this.updateLineNumbers();
+            }
+
+            handleKeydown(e) {
+                if (e.ctrlKey) {
+                    switch (e.key) {
+                        case 's': e.preventDefault(); this.saveFile(); break;
+                        case 'o': e.preventDefault(); this.openFile(); break;
+                        case 'n': e.preventDefault(); this.newDocument(); break;
+                        case 'f': e.preventDefault(); this.showSearch(); break;
+                        case 'h': e.preventDefault(); this.showReplace(); break;
+                        case 'z': e.preventDefault(); this.undo(); break;
+                        case 'y': e.preventDefault(); this.redo(); break;
+                        case '+': e.preventDefault(); this.zoom(1); break;
+                        case '-': e.preventDefault(); this.zoom(-1); break;
+                        case '0': e.preventDefault(); this.resetZoom(); break;
+                    }
+                } else if (e.key === 'F11') {
+                    e.preventDefault();
+                    this.toggleFullScreen();
+                }
+                this.updateStatus();
+            }
+
+            updateStatus() {
+                const text = this.textarea.value || '';
+                const lines = text.split('\n');
+                const cursorPos = this.textarea.selectionStart;
+                const words = text.trim().split(/\s+/).filter(w => w).length;
+                const chars = text.length;
+                let line = 1; 
+                let col = 1;
+
+                for (let i = 0; i < cursorPos; i++) {
+                    if (text[i] === '\n') {
+                        line++;
+                        col = 1;
+                    } else {
+                        col++;
+                    }
+                }
+
+                document.getElementById('cursor-pos').textContent = `Ln ${line}, Col ${col}`;
+                document.getElementById('doc-stats').textContent = `Words: ${words} | Chars: ${chars}`;
+            }
+
+            applySettings() {
+                this.textarea.style.fontFamily = this.settings.fontFamily;
+                this.textarea.style.fontSize = `${this.settings.fontSize}px`;
+                this.applyTheme();
+                if (this.settings.syntaxHighlight) this.applySyntaxHighlight();
+                this.updateLineNumbers();
+                if (this.lineNumberContainer) {
+                    this.lineNumberContainer.style.fontFamily = this.settings.fontFamily;
+                    this.lineNumberContainer.style.fontSize = `${this.settings.fontSize}px`;
+                }
+            }
+
+            applyTheme() {
+                const themes = {
+                    light: {
+                        '--bg-color': '#f5f6f5',
+                        '--text-color': '#1a1a1a',
+                        '--menu-bg': 'linear-gradient(135deg, #ffffff, #f0f0f0)',
+                        '--menu-text': '#1a1a1a',
+                        '--dropdown-bg': '#ffffff',
+                        '--dropdown-text': '#1a1a1a',
+                        '--textarea-bg': '#ffffff',
+                        '--status-bg': '#fafafa',
+                        '--status-color': '#555555',
+                        '--panel-bg': '#ffffff',
+                        '--input-bg': '#f9f9f9',
+                        '--border-color': '#d0d0d0',
+                        '--hover-bg': 'rgba(0,120,212,0.1)',
+                        '--active-bg': 'rgba(0,120,212,0.2)'
+                    },
+                    dark: {
+                        '--bg-color': '#1e1e1e',
+                        '--text-color': '#e0e0e0',
+                        '--menu-bg': 'linear-gradient(135deg, #2d2d2d, #252525)',
+                        '--menu-text': '#e0e0e0',
+                        '--dropdown-bg': '#2d2d2d',
+                        '--dropdown-text': '#e0e0e0',
+                        '--textarea-bg': '#252525',
+                        '--status-bg': '#2d2d2d',
+                        '--status-color': '#b0b0b0',
+                        '--panel-bg': '#2d2d2d',
+                        '--input-bg': '#333333',
+                        '--border-color': '#404040',
+                        '--hover-bg': 'rgba(0,120,212,0.2)',
+                        '--active-bg': 'rgba(0,120,212,0.3)'
+                    },
+                    solarized: {
+                        '--bg-color': '#002b36',
+                        '--text-color': '#93a1a1',
+                        '--menu-bg': 'linear-gradient(135deg, #073642, #002b36)',
+                        '--menu-text': '#93a1a1',
+                        '--dropdown-bg': '#073642',
+                        '--dropdown-text': '#93a1a1',
+                        '--textarea-bg': '#002b36',
+                        '--status-bg': '#073642',
+                        '--status-color': '#839496',
+                        '--panel-bg': '#073642',
+                        '--input-bg': '#073642',
+                        '--border-color': '#586e75',
+                        '--hover-bg': 'rgba(0,120,212,0.15)',
+                        '--active-bg': 'rgba(0,120,212,0.25)'
+                    },
+                    dracula: {
+                        '--bg-color': '#282a36',
+                        '--text-color': '#f8f8f2',
+                        '--menu-bg': 'linear-gradient(135deg, #44475a, #282a36)',
+                        '--menu-text': '#f8f8f2',
+                        '--dropdown-bg': '#44475a',
+                        '--dropdown-text': '#f8f8f2',
+                        '--textarea-bg': '#282a36',
+                        '--status-bg': '#44475a',
+                        '--status-color': '#bd93f9',
+                        '--panel-bg': '#44475a',
+                        '--input-bg': '#6272a4',
+                        '--border-color': '#6272a4',
+                        '--hover-bg': 'rgba(189,147,249,0.2)',
+                        '--active-bg': 'rgba(189,147,249,0.3)'
+                    },
+                    nord: {
+                        '--bg-color': '#2e3440',
+                        '--text-color': '#d8dee9',
+                        '--menu-bg': 'linear-gradient(135deg, #3b4252, #2e3440)',
+                        '--menu-text': '#d8dee9',
+                        '--dropdown-bg': '#3b4252',
+                        '--dropdown-text': '#d8dee9',
+                        '--textarea-bg': '#2e3440',
+                        '--status-bg': '#3b4252',
+                        '--status-color': '#81a1c1',
+                        '--panel-bg': '#3b4252',
+                        '--input-bg': '#434c5e',
+                        '--border-color': '#4c566a',
+                        '--hover-bg': 'rgba(129,161,193,0.2)',
+                        '--active-bg': 'rgba(129,161,193,0.3)'
+                    },
+                    monokai: {
+                        '--bg-color': '#272822',
+                        '--text-color': '#f8f8f2',
+                        '--menu-bg': 'linear-gradient(135deg, #3e3d32, #272822)',
+                        '--menu-text': '#f8f8f2',
+                        '--dropdown-bg': '#3e3d32',
+                        '--dropdown-text': '#f8f8f2',
+                        '--textarea-bg': '#272822',
+                        '--status-bg': '#3e3d32',
+                        '--status-color': '#a6e22e',
+                        '--panel-bg': '#3e3d32',
+                        '--input-bg': '#75715e',
+                        '--border-color': '#75715e',
+                        '--hover-bg': 'rgba(166,226,46,0.2)',
+                        '--active-bg': 'rgba(166,226,46,0.3)'
+                    },
+                    github: {
+                        '--bg-color': '#f6f8fa',
+                        '--text-color': '#24292e',
+                        '--menu-bg': 'linear-gradient(135deg, #ffffff, #f6f8fa)',
+                        '--menu-text': '#24292e',
+                        '--dropdown-bg': '#ffffff',
+                        '--dropdown-text': '#24292e',
+                        '--textarea-bg': '#ffffff',
+                        '--status-bg': '#f6f8fa',
+                        '--status-color': '#586069',
+                        '--panel-bg': '#ffffff',
+                        '--input-bg': '#fafbfc',
+                        '--border-color': '#e1e4e8',
+                        '--hover-bg': 'rgba(36,41,46,0.1)',
+                        '--active-bg': 'rgba(36,41,46,0.2)'
+                    },
+                    'github-dark': {
+                        '--bg-color': '#0d1117',
+                        '--text-color': '#c9d1d9',
+                        '--menu-bg': 'linear-gradient(135deg, #161b22, #0d1117)',
+                        '--menu-text': '#c9d1d9',
+                        '--dropdown-bg': '#161b22',
+                        '--dropdown-text': '#c9d1d9',
+                        '--textarea-bg': '#0d1117',
+                        '--status-bg': '#161b22',
+                        '--status-color': '#8b949e',
+                        '--panel-bg': '#161b22',
+                        '--input-bg': '#21262d',
+                        '--border-color': '#30363d',
+                        '--hover-bg': 'rgba(110,118,129,0.1)',
+                        '--active-bg': 'rgba(110,118,129,0.2)'
+                    },
+                    material: {
+                        '--bg-color': '#fafafa',
+                        '--text-color': '#212121',
+                        '--menu-bg': 'linear-gradient(135deg, #ffffff, #f5f5f5)',
+                        '--menu-text': '#212121',
+                        '--dropdown-bg': '#ffffff',
+                        '--dropdown-text': '#212121',
+                        '--textarea-bg': '#ffffff',
+                        '--status-bg': '#f5f5f5',
+                        '--status-color': '#757575',
+                        '--panel-bg': '#ffffff',
+                        '--input-bg': '#f5f5f5',
+                        '--border-color': '#e0e0e0',
+                        '--hover-bg': 'rgba(33,33,33,0.1)',
+                        '--active-bg': 'rgba(33,33,33,0.2)'
+                    },
+                    vscode: {
+                        '--bg-color': '#1e1e1e',
+                        '--text-color': '#d4d4d4',
+                        '--menu-bg': 'linear-gradient(135deg, #252526, #1e1e1e)',
+                        '--menu-text': '#d4d4d4',
+                        '--dropdown-bg': '#252526',
+                        '--dropdown-text': '#d4d4d4',
+                        '--textarea-bg': '#1e1e1e',
+                        '--status-bg': '#252526',
+                        '--status-color': '#569cd6',
+                        '--panel-bg': '#252526',
+                        '--input-bg': '#3c3c3c',
+                        '--border-color': '#3c3c3c',
+                        '--hover-bg': 'rgba(86,156,214,0.2)',
+                        '--active-bg': 'rgba(86,156,214,0.3)'
+                    },
+                    atom: {
+                        '--bg-color': '#282c34',
+                        '--text-color': '#abb2bf',
+                        '--menu-bg': 'linear-gradient(135deg, #353b45, #282c34)',
+                        '--menu-text': '#abb2bf',
+                        '--dropdown-bg': '#353b45',
+                        '--dropdown-text': '#abb2bf',
+                        '--textarea-bg': '#282c34',
+                        '--status-bg': '#353b45',
+                        '--status-color': '#56b6c2',
+                        '--panel-bg': '#353b45',
+                        '--input-bg': '#3e4451',
+                        '--border-color': '#3e4451',
+                        '--hover-bg': 'rgba(86,182,194,0.2)',
+                        '--active-bg': 'rgba(86,182,194,0.3)'
+                    },
+                    sublime: {
+                        '--bg-color': '#2d2e2e',
+                        '--text-color': '#d4d4d4',
+                        '--menu-bg': 'linear-gradient(135deg, #383838, #2d2e2e)',
+                        '--menu-text': '#d4d4d4',
+                        '--dropdown-bg': '#383838',
+                        '--dropdown-text': '#d4d4d4',
+                        '--textarea-bg': '#2d2e2e',
+                        '--status-bg': '#383838',
+                        '--status-color': '#e6c07b',
+                        '--panel-bg': '#383838',
+                        '--input-bg': '#434343',
+                        '--border-color': '#434343',
+                        '--hover-bg': 'rgba(230,192,123,0.2)',
+                        '--active-bg': 'rgba(230,192,123,0.3)'
+                    },
+                    oceanic: {
+                        '--bg-color': '#1b2b34',
+                        '--text-color': '#c0c5ce',
+                        '--menu-bg': 'linear-gradient(135deg, #263943, #1b2b34)',
+                        '--menu-text': '#c0c5ce',
+                        '--dropdown-bg': '#263943',
+                        '--dropdown-text': '#c0c5ce',
+                        '--textarea-bg': '#1b2b34',
+                        '--status-bg': '#263943',
+                        '--status-color': '#6699cc',
+                        '--panel-bg': '#263943',
+                        '--input-bg': '#2f4852',
+                        '--border-color': '#2f4852',
+                        '--hover-bg': 'rgba(102,153,204,0.2)',
+                        '--active-bg': 'rgba(102,153,204,0.3)'
+                    },
+                    gruvbox: {
+                        '--bg-color': '#282828',
+                        '--text-color': '#ebdbb2',
+                        '--menu-bg': 'linear-gradient(135deg, #3c3836, #282828)',
+                        '--menu-text': '#ebdbb2',
+                        '--dropdown-bg': '#3c3836',
+                        '--dropdown-text': '#ebdbb2',
+                        '--textarea-bg': '#282828',
+                        '--status-bg': '#3c3836',
+                        '--status-color': '#fabd2f',
+                        '--panel-bg': '#3c3836',
+                        '--input-bg': '#504945',
+                        '--border-color': '#504945',
+                        '--hover-bg': 'rgba(250,189,47,0.2)',
+                        '--active-bg': 'rgba(250,189,47,0.3)'
+                    }
+                };
+
+                Object.entries(themes[this.settings.theme]).forEach(([key, value]) => {
+                    document.documentElement.style.setProperty(key, value);
+                });
+            }
+
+            applySyntaxHighlight() {
+                const keywords = ['function', 'const', 'let', 'var', 'if', 'else', 'return', 'for', 'while', 'class'];
+                const strings = /(["'`])(?:(?=(\\?))\2.)*?\1/g;
+                const comments = /(\/\/.*$|\/\*[\s\S]*?\*\/)/gm;
+                
+                let content = this.textarea.value;
+                const wrapper = document.createElement('div');
+                wrapper.style.position = 'absolute';
+                wrapper.style.left = '-9999px';
+                document.body.appendChild(wrapper);
+                
+                wrapper.innerHTML = content
+                    .replace(comments, match => `<span style="color: #6a737d">${match}</span>`)
+                    .replace(strings, match => `<span style="color: #e6c07b">${match}</span>`)
+                    .replace(new RegExp(`\\b(${keywords.join('|')})\\b`, 'g'), 
+                        match => `<span style="color: var(--primary-color)">${match}</span>`);
+                
+                this.textarea.style.background = 'transparent';
+                this.textarea.style.color = 'transparent';
+                this.textarea.style.caretColor = 'var(--text-color)';
+                
+                const highlightLayer = document.createElement('div');
+                highlightLayer.style.cssText = this.textarea.style.cssText;
+                highlightLayer.style.position = 'absolute';
+                highlightLayer.style.pointerEvents = 'none';
+                highlightLayer.style.background = 'transparent';
+                highlightLayer.style.color = 'inherit';
+                highlightLayer.innerHTML = wrapper.innerHTML;
+                this.textarea.parentNode.insertBefore(highlightLayer, this.textarea);
+                
+                document.body.removeChild(wrapper);
+            }
+        }
+
+        const script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+        script.onload = () => {
+            try {
+                const editor = new WordnotePro();
+                editor.loadSettings();
+            } catch (error) {
+                console.error(`Initialization error: ${error}`);
+                
+            }
+        };
+        document.head.appendChild(script);
+    </script>
+</body>
+</html>
