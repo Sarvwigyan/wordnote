@@ -20,6 +20,15 @@
             --screen-gap: clamp(5px, 2vw, 10px);
             --font-mono: 'JetBrains Mono', monospace;
             --font-ui: 'Segoe UI', system-ui, sans-serif;
+            /* Theme Variables */
+            --menu-bg: linear-gradient(135deg, #ffffff, #f0f0f0);
+            --dropdown-bg: #ffffff;
+            --status-bg: #ffffff;
+            --textarea-bg: #ffffff;
+            --line-number-bg: #f8f9fa;
+            --scrollbar-thumb: #6c757d;
+            --scrollbar-track: #f8f9fa;
+            --border-color: #dee2e6;
         }
 
         * {
@@ -34,11 +43,11 @@
         }
 
         ::-webkit-scrollbar-track {
-            background: var(--light-bg);
+            background: var(--scrollbar-track);
         }
 
         ::-webkit-scrollbar-thumb {
-            background: var(--secondary-color);
+            background: var(--scrollbar-thumb);
             border-radius: 4px;
         }
 
@@ -63,12 +72,12 @@
         }
 
         #menu-bar {
-            background: linear-gradient(135deg, #ffffff, #f0f0f0);
+            background: var(--menu-bg);
             padding: clamp(0.5rem, 1vw, 0.75rem);
             display: flex;
             flex-wrap: wrap;
             gap: clamp(0.25rem, 1vw, 0.5rem);
-            border-bottom: 1px solid #dee2e6;
+            border-bottom: 1px solid var(--border-color);
             box-shadow: var(--shadow);
             position: sticky;
             top: 0;
@@ -124,8 +133,8 @@
 
         .dropdown {
             position: fixed;
-            background: white;
-            border: 1px solid #dee2e6;
+            background: var(--dropdown-bg);
+            border: 1px solid var(--border-color);
             border-radius: var(--border-radius);
             min-width: clamp(150px, 20vw, 200px);
             box-shadow: var(--shadow);
@@ -173,8 +182,8 @@
 
         .submenu-panel {
             position: fixed;
-            background: white;
-            border: 1px solid #dee2e6;
+            background: var(--dropdown-bg);
+            border: 1px solid var(--border-color);
             border-radius: var(--border-radius);
             min-width: clamp(150px, 25vw, 200px);
             box-shadow: var(--shadow);
@@ -212,7 +221,7 @@
 
         .line-numbers-container {
             width: clamp(30px, 5vw, 40px);
-            background: #f8f9fa;
+            background: var(--line-number-bg);
             color: #868e96;
             font-family: var(--font-mono);
             font-size: var(--font-size);
@@ -222,7 +231,7 @@
             overflow-y: auto;
             user-select: none;
             z-index: 2;
-            border-right: 1px solid #dee2e6;
+            border-right: 1px solid var(--border-color);
             display: none;
         }
 
@@ -233,7 +242,7 @@
             resize: none;
             font-family: var(--font-mono);
             font-size: var(--font-size);
-            background: white;
+            background: var(--textarea-bg);
             color: var(--dark-text);
             box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
             outline: none;
@@ -275,7 +284,7 @@
             width: clamp(80px, 10vw, 100px);
             height: calc(100% - var(--screen-gap) * 2);
             background: rgba(248, 249, 250, 0.9);
-            border-left: 1px solid #dee2e6;
+            border-left: 1px solid var(--border-color);
             overflow: hidden;
             z-index: 3;
             display: none;
@@ -294,8 +303,8 @@
 
         #status-bar {
             padding: clamp(0.4rem, 1vw, 0.7rem) clamp(1rem, 2vw, 1.5rem);
-            background: white;
-            border-top: 1px solid #dee2e6;
+            background: var(--status-bg);
+            border-top: 1px solid var(--border-color);
             font-size: clamp(10px, 2vw, 12px);
             color: #495057;
             display: flex;
@@ -326,7 +335,7 @@
             top: 0;
             width: clamp(250px, 40vw, 350px);
             height: 100%;
-            background: white;
+            background: var(--light-bg);
             box-shadow: -4px 0 20px rgba(0,0,0,0.15);
             transition: var(--transition);
             z-index: 1500;
@@ -341,13 +350,13 @@
 
         .panel-header {
             padding: clamp(0.5rem, 1vw, 1rem);
-            border-bottom: 1px solid #dee2e6;
+            border-bottom: 1px solid var(--border-color);
             display: flex;
             justify-content: space-between;
             align-items: center;
             position: sticky;
             top: 0;
-            background: white;
+            background: var(--light-bg);
             z-index: 1;
         }
 
@@ -372,7 +381,7 @@
         .setting-group {
             margin: clamp(1rem, 2vw, 1.5rem) 0;
             padding: clamp(0.5rem, 1vw, 1rem);
-            background: #f8f9fa;
+            background: var(--line-number-bg);
             border-radius: var(--border-radius);
         }
 
@@ -386,7 +395,7 @@
         select, input[type="number"], input[type="checkbox"], input[type="color"] {
             width: 100%;
             padding: 0.5rem;
-            border: 1px solid #ced4da;
+            border: 1px solid var(--border-color);
             border-radius: var(--border-radius);
             font-size: clamp(11px, 2vw, 13px);
             transition: var(--transition);
@@ -440,6 +449,46 @@
             background: #5c636a;
         }
 
+        /* Enhanced Theme Styles */
+        .dark-theme {
+            --light-bg: #1a1a1a;
+            --dark-text: #e0e0e0;
+            --menu-bg: linear-gradient(135deg, #2d2d2d, #252525);
+            --dropdown-bg: #2d2d2d;
+            --status-bg: #252525;
+            --textarea-bg: #1e1e1e;
+            --line-number-bg: #252525;
+            --scrollbar-thumb: #4d4d4d;
+            --scrollbar-track: #2d2d2d;
+            --border-color: #404040;
+        }
+
+        .solarized-theme {
+            --light-bg: #fdf6e3;
+            --dark-text: #657b83;
+            --menu-bg: linear-gradient(135deg, #fdf6e3, #eee8d5);
+            --dropdown-bg: #fdf6e3;
+            --status-bg: #eee8d5;
+            --textarea-bg: #fdf6e3;
+            --line-number-bg: #eee8d5;
+            --scrollbar-thumb: #93a1a1;
+            --scrollbar-track: #eee8d5;
+            --border-color: #93a1a1;
+        }
+
+        .dracula-theme {
+            --light-bg: #282a36;
+            --dark-text: #f8f8f2;
+            --menu-bg: linear-gradient(135deg, #282a36, #21222c);
+            --dropdown-bg: #282a36;
+            --status-bg: #21222c;
+            --textarea-bg: #282a36;
+            --line-number-bg: #21222c;
+            --scrollbar-thumb: #6272a4;
+            --scrollbar-track: #282a36;
+            --border-color: #6272a4;
+        }
+
         @media (max-width: 768px) {
             #menu-bar {
                 justify-content: center;
@@ -449,6 +498,10 @@
 
             .menu-btn span {
                 display: none;
+            }
+
+            .menu-btn i {
+                font-size: 1.1em;
             }
 
             .line-numbers-container, .minimap-container {
@@ -466,7 +519,12 @@
             #status-bar {
                 flex-direction: column;
                 text-align: center;
-                gap: 0.5rem;
+                gap: 0.3rem;
+                padding: 0.5rem;
+            }
+
+            .status-item span {
+                font-size: 0.9em;
             }
 
             #settings-panel {
@@ -601,19 +659,36 @@
                 this.minimapContainer = pane.querySelector('.minimap-container');
                 this.minimap = pane.querySelector('.minimap');
                 this.setup();
+                this.updateThrottle = this.throttle(() => this.updateMinimap(), 100);
             }
 
             setup() {
-                this.textarea.addEventListener('scroll', () => this.updateMinimap());
-                this.textarea.addEventListener('input', () => this.updateMinimap());
+                this.textarea.addEventListener('scroll', () => this.updateThrottle());
+                this.textarea.addEventListener('input', () => this.updateThrottle());
                 this.updateMinimap();
+            }
+
+            throttle(fn, wait) {
+                let last = 0;
+                return () => {
+                    const now = Date.now();
+                    if (now - last >= wait) {
+                        fn();
+                        last = now;
+                    }
+                };
             }
 
             updateMinimap() {
                 const content = this.textarea.value;
+                const lineHeight = 2; // Minimap line height in pixels
+                const totalLines = content.split('\n').length;
+                const visibleHeight = this.pane.clientHeight;
+                const scale = visibleHeight / (totalLines * lineHeight);
+                
                 this.minimap.textContent = content;
-                const scale = this.pane.clientHeight / (content.split('\n').length * 1.5 * 2);
                 this.minimap.style.transform = `scaleY(${scale}) translateY(-${this.textarea.scrollTop / scale}px)`;
+                this.minimap.style.lineHeight = `${lineHeight}px`;
             }
         }
 
@@ -632,6 +707,12 @@
                 this.textarea = null;
                 this.highlightLayer = null;
                 this.lineNumberContainer = null;
+                this.themes = {
+                    light: '',
+                    dark: 'dark-theme',
+                    solarized: 'solarized-theme',
+                    dracula: 'dracula-theme'
+                };
                 this.settings = {
                     fontFamily: 'JetBrains Mono',
                     fontSize: 14,
@@ -763,16 +844,31 @@
                 });
 
                 ['text-color', 'bg-color'].forEach(id => {
-                    document.getElementById(id).addEventListener('change', e => {
+                    const input = document.getElementById(id);
+                    input.addEventListener('change', e => {
                         this.settings[id.replace('-', '')] = e.target.value;
                         this.applySettings();
                         this.saveSettings();
+                    });
+                    input.addEventListener('input', e => {
+                        this.settings[id.replace('-', '')] = e.target.value;
+                        this.applySettings();
                     });
                 });
 
                 document.getElementById('save-settings').addEventListener('click', () => this.saveSettings());
                 document.getElementById('reset-settings').addEventListener('click', () => this.resetSettings());
                 document.getElementById('close-settings').addEventListener('click', () => this.togglePanel());
+
+                this.textarea.addEventListener('touchstart', (e) => {
+                    if (e.touches.length > 1) e.preventDefault();
+                }, { passive: false });
+
+                document.addEventListener('keydown', (e) => {
+                    if (e.ctrlKey && e.key === '/') {
+                        this.showKeyboardShortcuts();
+                    }
+                });
             }
 
             setupPaneEvents(pane) {
@@ -813,11 +909,10 @@
                 const rect = button.getBoundingClientRect();
                 const screenWidth = window.innerWidth;
                 const screenHeight = window.innerHeight;
-                const dropdownWidth = dropdown.offsetWidth || 200; // Fallback width
-                const dropdownHeight = dropdown.offsetHeight || 200; // Fallback height
+                const dropdownWidth = dropdown.offsetWidth || 200;
+                const dropdownHeight = dropdown.offsetHeight || 200;
                 const screenGap = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--screen-gap'));
 
-                // Position main dropdown
                 let left = rect.left;
                 let top = rect.bottom;
 
@@ -837,26 +932,20 @@
                 dropdown.style.left = `${left}px`;
                 dropdown.style.top = `${top}px`;
 
-                // Adjust submenus
                 dropdown.querySelectorAll('.submenu-panel').forEach(submenu => {
                     const parentRect = submenu.parentElement.getBoundingClientRect();
-                    const submenuWidth = submenu.offsetWidth || 150; // Fallback width
-                    const submenuHeight = submenu.offsetHeight || 150; // Fallback height
+                    const submenuWidth = submenu.offsetWidth || 150;
+                    const submenuHeight = submenu.offsetHeight || 150;
                     let submenuLeft, submenuTop = parentRect.top;
 
-                    // Calculate available space on both sides
                     const spaceRight = screenWidth - parentRect.right - screenGap;
                     const spaceLeft = parentRect.left - screenGap;
 
-                    // Decide submenu direction based on available space
                     if (spaceRight >= submenuWidth && screenWidth >= 768) {
-                        // Open to the right if there's enough space and not on small screens
                         submenuLeft = parentRect.right + 5;
                     } else if (spaceLeft >= submenuWidth) {
-                        // Open to the left if there's enough space on the left
                         submenuLeft = parentRect.left - submenuWidth - 5;
                     } else {
-                        // If neither side has enough space, position it at the best edge and constrain width
                         if (spaceRight > spaceLeft) {
                             submenuLeft = parentRect.right + 5;
                             submenu.style.maxWidth = `${spaceRight}px`;
@@ -866,7 +955,6 @@
                         }
                     }
 
-                    // Ensure submenu stays within horizontal bounds
                     if (submenuLeft + submenuWidth > screenWidth - screenGap) {
                         submenuLeft = screenWidth - submenuWidth - screenGap;
                     }
@@ -875,7 +963,6 @@
                         submenu.style.maxWidth = `${screenWidth - screenGap * 2}px`;
                     }
 
-                    // Adjust submenu vertically
                     if (submenuTop + submenuHeight > screenHeight - screenGap) {
                         submenuTop = screenHeight - submenuHeight - screenGap;
                         if (submenuTop < screenGap) {
@@ -963,35 +1050,71 @@
                 }
             }
 
-            openFile() {
-                const input = document.createElement('input');
-                input.type = 'file';
-                input.accept = '.txt,.md,.js,.html,.css';
-                input.onchange = e => {
-                    const file = e.target.files[0];
-                    const reader = new FileReader();
-                    reader.onload = e => {
-                        this.textarea.value = e.target.result;
-                        this.history[this.activePane] = [e.target.result];
+            async openFile() {
+                try {
+                    if ('showOpenFilePicker' in window) {
+                        const [fileHandle] = await window.showOpenFilePicker();
+                        const file = await fileHandle.getFile();
+                        const text = await file.text();
+                        this.textarea.value = text;
+                        this.history[this.activePane] = [text];
                         this.redoStack[this.activePane] = [];
-                        this.updateStatus();
-                        this.applySyntaxHighlight();
-                        this.updateLineNumbers();
                         this.detectLanguage(file.name);
-                        this.minimaps[this.activePane].updateMinimap();
-                    };
-                    reader.readAsText(file);
-                };
-                input.click();
+                        this.updateAll();
+                        this.showNotification('File opened successfully', 'success');
+                    } else {
+                        const input = document.createElement('input');
+                        input.type = 'file';
+                        input.accept = '.txt,.md,.js,.html,.css';
+                        input.onchange = e => {
+                            const file = e.target.files[0];
+                            const reader = new FileReader();
+                            reader.onload = e => {
+                                this.textarea.value = e.target.result;
+                                this.history[this.activePane] = [e.target.result];
+                                this.redoStack[this.activePane] = [];
+                                this.updateStatus();
+                                this.applySyntaxHighlight();
+                                this.updateLineNumbers();
+                                this.detectLanguage(file.name);
+                                this.minimaps[this.activePane].updateMinimap();
+                                this.showNotification('File opened successfully', 'success');
+                            };
+                            reader.readAsText(file);
+                        };
+                        input.click();
+                    }
+                } catch (err) {
+                    if (err.name !== 'AbortError') {
+                        this.showNotification('Error opening file', 'error');
+                    }
+                }
             }
 
-            saveFile() {
+            async saveFile() {
                 try {
-                    const blob = new Blob([this.textarea.value], { type: 'text/plain' });
-                    this.downloadFile(blob, 'document.txt');
+                    if ('showSaveFilePicker' in window) {
+                        const blob = new Blob([this.textarea.value], { type: 'text/plain' });
+                        const fileHandle = await window.showSaveFilePicker({
+                            suggestedName: 'document.txt',
+                            types: [{
+                                description: 'Text Files',
+                                accept: { 'text/plain': ['.txt'] }
+                            }]
+                        });
+                        const writable = await fileHandle.createWritable();
+                        await writable.write(blob);
+                        await writable.close();
+                        this.showNotification('File saved successfully', 'success');
+                    } else {
+                        const blob = new Blob([this.textarea.value], { type: 'text/plain' });
+                        this.downloadFile(blob, 'document.txt');
+                        this.showNotification('File saved successfully', 'success');
+                    }
                 } catch (err) {
-                    console.error('Save failed:', err);
-                    alert('Failed to save file');
+                    if (err.name !== 'AbortError') {
+                        this.showNotification('Error saving file', 'error');
+                    }
                 }
             }
 
@@ -1001,9 +1124,9 @@
                     try {
                         const blob = new Blob([this.textarea.value], { type: 'text/plain' });
                         this.downloadFile(blob, name);
+                        this.showNotification('File saved as ' + name, 'success');
                     } catch (err) {
-                        console.error('Save As failed:', err);
-                        alert('Failed to save file');
+                        this.showNotification('Error saving file', 'error');
                     }
                 }
             }
@@ -1012,9 +1135,9 @@
                 try {
                     const blob = new Blob([this.textarea.value], { type: 'text/markdown' });
                     this.downloadFile(blob, 'document.md');
+                    this.showNotification('Exported as Markdown', 'success');
                 } catch (err) {
-                    console.error('Export failed:', err);
-                    alert('Failed to export as Markdown');
+                    this.showNotification('Error exporting as Markdown', 'error');
                 }
             }
 
@@ -1423,42 +1546,28 @@
             }
 
             applyTheme() {
-                const themes = {
+                document.body.className = this.themes[this.settings.theme] || '';
+                const themeColors = {
                     light: {
                         '--light-bg': this.settings.bgColor,
-                        '--dark-text': this.settings.textColor,
-                        '--menu-bg': 'linear-gradient(135deg, #ffffff, #f0f0f0)',
-                        '--dropdown-bg': 'white',
-                        '--textarea-bg': 'white',
-                        '--status-bg': 'white'
+                        '--dark-text': this.settings.textColor
                     },
                     dark: {
-                        '--light-bg': '#212529',
-                        '--dark-text': '#f8f9fa',
-                        '--menu-bg': 'linear-gradient(135deg, #2d2d2d, #252525)',
-                        '--dropdown-bg': '#2d2d2d',
-                        '--textarea-bg': '#252525',
-                        '--status-bg': '#2d2d2d'
+                        '--light-bg': '#1a1a1a',
+                        '--dark-text': '#e0e0e0'
                     },
                     solarized: {
                         '--light-bg': '#fdf6e3',
-                        '--dark-text': '#657b83',
-                        '--menu-bg': 'linear-gradient(135deg, #fdf6e3, #eee8d5)',
-                        '--dropdown-bg': '#fdf6e3',
-                        '--textarea-bg': '#fdf6e3',
-                        '--status-bg': '#eee8d5'
+                        '--dark-text': '#657b83'
                     },
                     dracula: {
                         '--light-bg': '#282a36',
-                        '--dark-text': '#f8f8f2',
-                        '--menu-bg': 'linear-gradient(135deg, #282a36, #21232c)',
-                        '--dropdown-bg': '#282a36',
-                        '--textarea-bg': '#282a36',
-                        '--status-bg': '#21232c'
+                        '--dark-text': '#f8f8f2'
                     }
                 };
 
-                Object.entries(themes[this.settings.theme] || themes.light).forEach(([key, value]) => {
+                const colors = themeColors[this.settings.theme] || themeColors.light;
+                Object.entries(colors).forEach(([key, value]) => {
                     document.documentElement.style.setProperty(key, value);
                 });
             }
@@ -1470,6 +1579,10 @@
                     return;
                 }
 
+                this.debouncedHighlight();
+            }
+
+            debouncedHighlight = this.debounce(() => {
                 const languageRules = {
                     javascript: {
                         keywords: ['function', 'const', 'let', 'var', 'if', 'else', 'return', 'for', 'while', 'class'],
@@ -1515,9 +1628,9 @@
                 const numbers = /\b\d+\b/g;
 
                 let content = this.textarea.value
-                    .replace(/&/g, '&')
-                    .replace(/</g, '<')
-                    .replace(/>/g, '>');
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;');
 
                 content = content
                     .replace(comments, match => `<span style="color: ${rules.commentColor || '#6a737d'}">${match}</span>`)
@@ -1529,6 +1642,14 @@
                 this.highlightLayer.innerHTML = content;
                 this.textarea.style.color = 'transparent';
                 this.textarea.style.caretColor = this.settings.textColor;
+            }, 300);
+
+            debounce(fn, delay) {
+                let timeout;
+                return () => {
+                    clearTimeout(timeout);
+                    timeout = setTimeout(fn, delay);
+                };
             }
 
             detectLanguage(filename) {
@@ -1549,17 +1670,84 @@
 
             updateLineNumbers() {
                 const lines = this.textarea.value.split('\n');
-                this.lineNumberContainer.innerHTML = Array.from(
-                    { length: lines.length },
-                    (_, i) => `<div style="line-height: ${this.settings.fontSize * 1.5}px">${i + 1}</div>`
-                ).join('');
+                const numbers = Array.from({ length: lines.length }, (_, i) => i + 1);
+                this.lineNumberContainer.textContent = numbers.join('\n');
+                this.lineNumberContainer.style.lineHeight = `${this.settings.fontSize * 1.5}px`;
             }
 
             syncLineNumbersScroll() {
                 this.lineNumberContainer.scrollTop = this.textarea.scrollTop;
                 this.highlightLayer.scrollTop = this.textarea.scrollTop;
             }
+
+            updateAll() {
+                this.updateStatus();
+                this.applySyntaxHighlight();
+                this.updateLineNumbers();
+                this.minimaps[this.activePane].updateMinimap();
+            }
+
+            showNotification(message, type = 'info') {
+                const notification = document.createElement('div');
+                notification.className = `notification ${type}`;
+                notification.textContent = message;
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.classList.add('show');
+                    setTimeout(() => {
+                        notification.classList.remove('show');
+                        setTimeout(() => notification.remove(), 300);
+                    }, 3000);
+                }, 100);
+            }
+
+            showKeyboardShortcuts() {
+                const shortcuts = [
+                    { key: 'Ctrl+S', action: 'Save' },
+                    { key: 'Ctrl+O', action: 'Open' },
+                    { key: 'Ctrl+N', action: 'New' },
+                    { key: 'Ctrl+Z/Y', action: 'Undo/Redo' },
+                    { key: 'F11', action: 'Fullscreen' },
+                    { key: 'Ctrl+/', action: 'Show Help' }
+                ];
+
+                const helpText = shortcuts.map(s => `${s.key}: ${s.action}`).join('\n');
+                alert('Keyboard Shortcuts:\n\n' + helpText);
+            }
         }
+
+        const notificationStyle = document.createElement('style');
+        notificationStyle.textContent = `
+            .notification {
+                position: fixed;
+                bottom: 20px;
+                right: -300px;
+                padding: 12px 24px;
+                border-radius: var(--border-radius);
+                background: var(--light-bg);
+                color: var(--dark-text);
+                box-shadow: var(--shadow);
+                transition: var(--transition);
+                z-index: 3000;
+                border: 1px solid var(--border-color);
+            }
+            
+            .notification.show {
+                right: 20px;
+            }
+            
+            .notification.success {
+                background: var(--success-color);
+                color: white;
+            }
+            
+            .notification.error {
+                background: var(--danger-color);
+                color: white;
+            }
+        `;
+        document.head.appendChild(notificationStyle);
 
         const editor = new WordnotePro();
         document.body.addEventListener('click', e => {
